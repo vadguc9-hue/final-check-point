@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm, CSRFProtect
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 import uuid
 import logging
@@ -713,7 +713,7 @@ def telegram_payment():
         if not telegram_id or not amount or amount <= 0:
             return jsonify({'error': 'Invalid telegram_id or amount'}), 400
         
-        # Find user by telegram_id, username, or phone number
+        # Find user by telegram_id, username, email, or phone number
         user = None
         
         # Try to find by telegram_id first
@@ -724,7 +724,13 @@ def telegram_payment():
         if not user and username:
             user = User.query.filter_by(username=username).first()
         
-        # If still not found, try phone number (for users who registered with phone as telegram_id)
+        # If still not found, try email (for login with email users)
+        if not user and username:
+            # Try to find by email if username looks like email
+            if '@' in username:
+                user = User.query.filter_by(email=username).first()
+        
+        # If still not found, try phone number
         if not user:
             user = User.query.filter_by(phone_number=str(telegram_id)).first()
         
@@ -732,7 +738,7 @@ def telegram_payment():
             return jsonify({'error': 'User not found. Please link your Telegram account in profile.'}), 404
         
         # Generate unique transaction ID
-        transaction_id = f"TG_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{str(telegram_id)[-4:]}"
+        transaction_id = f"TG_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{str(telegram_id)[-4:]}"
         
         # Check if transaction already exists
         existing_payment = Payment.query.filter_by(transaction_id=transaction_id).first()
@@ -746,11 +752,11 @@ def telegram_payment():
             transaction_id=transaction_id,
             user_id=user.id,
             status='completed',
-            processed_at=datetime.utcnow()
+            processed_at=datetime.now(timezone.utc)
         )
         
         # Update user balance
-        user.balance += amount
+        user.balance = float(user.balance) + float(amount)
         
         # Save to database
         db.session.add(payment)
@@ -822,11 +828,11 @@ def sms_payment():
             transaction_id=transaction_id,
             user_id=user.id,
             status='completed',
-            processed_at=datetime.utcnow()
+            processed_at=datetime.now(timezone.utc)
         )
         
         # Update user balance
-        user.balance += amount
+        user.balance = float(user.balance) + float(amount)
         
         # Save to database
         db.session.add(payment)
