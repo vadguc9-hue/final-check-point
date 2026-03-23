@@ -1,0 +1,259 @@
+{% extends "layout.html" %}
+
+{% block title %}EcoMaterial Hub - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center py-5">
+    <div class="card border-0 shadow-lg">
+        <div class="card-body p-5">
+            <h1 class="display-4 fw-bold text-success mb-3">
+                <i class="fas fa-leaf"></i> Welcome to EcoMaterial Hub
+            </h1>
+            <p class="lead text-muted mb-4">
+                Your sustainable B2B marketplace for materials and resources
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('search') }}" class="btn btn-success btn-lg">
+                    <i class="fas fa-search"></i> Browse Products
+                </a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('sell') }}" class="btn btn-outline-success btn-lg">
+                        <i class="fas fa-plus"></i> Start Selling
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="search-section py-4">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title text-success mb-3">
+                <i class="fas fa-search"></i> Smart Search
+            </h3>
+            <form method="POST" class="search-container">
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        {{ form.query(class="form-control form-control-lg", placeholder="Search for materials... (try 'metal', 'wood', 'plastic')") }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.category(class="form-select form-select-lg") }}
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12 text-center">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-search"></i> Search Products
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Products Section -->
+<div class="products-section py-4">
+    {% if search_performed %}
+        <h2 class="mb-4 text-success">
+            <i class="fas fa-search"></i> Search Results
+            {% if products %}
+                <span class="badge bg-secondary ms-2">{{ products|length }} found</span>
+            {% endif %}
+        </h2>
+    {% else %}
+        <h2 class="mb-4 text-success">
+            <i class="fas fa-star"></i> Featured Products
+        </h2>
+    {% endif %}
+    
+    <div class="row" id="products-grid">
+        {% if products %}
+            {% for product in products %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 product-card" data-product-id="{{ product.id }}">
+                        {% if product.photo_filename %}
+                            <img src="{{ url_for('static', filename='uploads/' + product.photo_filename) }}" 
+                                 alt="{{ product.title }}" class="card-img-top product-image" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background-color: #e8f5e9;">
+                                <i class="fas fa-box fa-3x text-success"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ product.title }}</h5>
+                            <p class="card-text text-muted">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="h4 text-success mb-0">${{ "%.2f"|format(product.price) }}</span>
+                                    <span class="badge bg-secondary">{{ product.category.name }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <small class="text-muted">{{ product.quantity }} available</small>
+                                    <small class="text-muted">{{ product.seller.business_name }}</small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    {% if current_user.is_authenticated %}
+                                        {% set is_favorited = current_user.id in product.favorited_by|map(attribute='user_id')|list %}
+                                        <a href="{{ url_for('toggle_favorite', product_id=product.id) }}" class="btn btn-sm btn-outline-danger favorite-btn">
+                                            {% if is_favorited %}
+                                                <i class="fas fa-heart"></i> Favorited
+                                            {% else %}
+                                                <i class="far fa-heart"></i> Add to Favorites
+                                            {% endif %}
+                                        </a>
+                                    {% endif %}
+                                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-sm btn-success">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card text-center">
+                    <div class="card-body py-5">
+                        {% if search_performed %}
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h3>No products found</h3>
+                            <p class="text-muted">Try adjusting your search terms or browse all categories</p>
+                            <a href="{{ url_for('home') }}" class="btn btn-outline-success">
+                                <i class="fas fa-redo"></i> Clear Search
+                            </a>
+                        {% else %}
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <h3>No products yet</h3>
+                            <p class="text-muted">Be the first to list a product!</p>
+                            {% if current_user.is_authenticated %}
+                                <a href="{{ url_for('sell') }}" class="btn btn-success">
+                                    <i class="fas fa-plus"></i> List Your First Product
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('register') }}" class="btn btn-success">
+                                    <i class="fas fa-user-plus"></i> Register to Start Selling
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--light-mint), white);
+    }
+
+    .product-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .favorite-btn:hover {
+        transform: scale(1.05);
+    }
+
+#eco-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+/* модальное окно */
+#eco-message {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 40px 50px;
+    max-width: 700px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.3);
+    font-family: "Poppins", "Segoe UI Emoji", sans-serif; /* современный + смайлики */
+    font-size: 22px;
+    line-height: 1.6;
+    text-align: center;
+    position: relative;
+    animation: fadeInUp 0.4s ease;
+}
+
+/* радужная подсветка вокруг */
+#eco-message::before {
+    content: "";
+    position: absolute;
+    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    border-radius: 24px;
+    background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet, red);
+    background-size: 400% 400%;
+    animation: rainbowGlow 8s linear infinite;
+    z-index: -1;
+}
+
+/* анимация радужного свечения */
+@keyframes rainbowGlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* анимация появления */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* стиль кнопки */
+#eco-button {
+    background: linear-gradient(135deg, #4CAF50, #81C784);
+    color: white;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+    position: fixed;
+    bottom: 70px;
+    right: 20px;
+    z-index: 2100;
+}
+
+#eco-button:hover {
+    box-shadow: 0 0 25px rgba(76, 175, 80, 0.9);
+    transform: scale(1.08);
+}
+
+</style>
+
+<!-- Floating Eco Button (only on home page) -->
+<div id="eco-overlay">
+    <div id="eco-message"></div>
+</div>
+<button id="eco-button">Eco Tip</button>
+
+
+
+{% endblock %}
