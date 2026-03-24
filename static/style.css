@@ -461,4 +461,123 @@ body {
 #menu-toggle:hover {
     transform: scale(1.2);
 }
+/* --- ENHANCEMENTS START HERE --- */
 
+/* 1. Improved root variables for better depth and modern look */
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --accent-gradient: linear-gradient(135deg, var(--forest-green), #43A047);
+    --soft-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+/* 2. Global Smooth Scrolling for better UX */
+html {
+    scroll-behavior: smooth;
+}
+
+/* 3. Glassmorphism effect for the Desktop Navigation */
+.desktop-nav {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* 4. Modern Typography adjustments */
+h1, h2, h3 {
+    letter-spacing: -0.02em;
+    color: var(--dark-slate);
+}
+
+/* 5. Enhanced Product Cards with better hover state and transitions */
+.product-card {
+    border: 1px solid rgba(0,0,0,0.05);
+    background: var(--white);
+    /* Adding a subtle fade-in animation trigger for JS 'loaded' class */
+    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.product-card:hover {
+    transform: translateY(-8px) scale(1.01) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
+}
+
+/* 6. Styled price tag to make it pop */
+.product-price {
+    display: block;
+    margin: 10px 0;
+    font-family: 'Monaco', monospace; /* Professional tech look */
+}
+
+/* 7. Advanced Button Animations */
+.btn {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+    z-index: -1;
+}
+
+.btn:hover::after {
+    left: 100%;
+}
+
+.btn-primary {
+    background: var(--accent-gradient);
+}
+
+/* 8. Modern Input Focus with glowing effect */
+.form-control:focus {
+    box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.15);
+    border-color: var(--forest-green);
+}
+
+/* 9. Floating animation for decorative elements or specific icons */
+@keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+}
+
+.nav-brand i {
+    animation: floating 3s ease-in-out infinite;
+}
+
+/* 10. Better Mobile Navigation look */
+.mobile-nav {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid var(--glass-border);
+    padding-top: 10px;
+}
+
+/* 11. Custom scrollbar for a premium feel */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--light-gray);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--mint);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--forest-green);
+}
+
+/* --- ENHANCEMENTS END --- */
